@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPI Payment</title>
+</head>
+<body>
+    <h2>Pay using UPI</h2>
+    <form id="upiForm">
+        <label for="upiID">Enter your UPI ID:</label>
+        <input type="text" id="upiID" name="upiID" required placeholder="e.g., abc@okhdfcbank">
+        <br><br>
+        <button type="button" onclick="processPayment()">Proceed to Pay</button>
+    </form>
+
+    <script>
+        async function processPayment() {
+            const upiID = document.getElementById("upiID").value;
+
+            if (!upiID) {
+                alert("Please enter your UPI ID");
+                return;
+            }
+
+            // Prepare the order creation payload for Cashfree API
+            const orderData = {
+                order_id: 'ORDER' + Math.floor(Math.random() * 1000000), // Unique Order ID
+                order_amount: 100, // Payment amount
+                order_currency: 'INR', // Currency
+                customer_details: {
+                    customer_id: 'CUST001', // Replace with actual customer ID
+                    customer_email: 'user@example.com', // Replace with actual customer email
+                    customer_phone: '9876543210' // Replace with actual customer phone number
+                },
+                payment_method: {
+                    upi: {
+                        vpa: upiID // The UPI ID provided by the user
+                    }
+                }
+            };
+
+            try {
+                const response = await fetch('https://sandbox.cashfree.com/pg/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-client-id': 'cfsk_ma_test_9b6f4444f6cf6b7dc2a1ee5c5f4757db_1710dd9e', // Your API key
+                        'x-client-secret': 'YOUR_CLIENT_SECRET' // Your secret key, replace this
+                    },
+                    body: JSON.stringify(orderData)
+                });
+
+                const data = await response.json();
+
+                if (data && data.payment_link) {
+                    // Redirect to UPI payment link (Google Pay, PhonePe, etc.)
+                    window.location.href = data.payment_link;
+                } else {
+                    console.error("Payment link not generated:", data);
+                }
+            } catch (error) {
+                console.error("Error processing payment:", error);
+            }
+        }
+    </script>
+</body>
+</html>
